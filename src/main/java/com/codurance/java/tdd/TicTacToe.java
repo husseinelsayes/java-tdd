@@ -1,40 +1,41 @@
 package com.codurance.java.tdd;
 
 public class TicTacToe {
-    private final String[][] board;
+    private String[][] squares;
+    private Player currentPlayer;
+    private BoardState boardState;
+
+    public BoardState getBoardStatus(){
+        return this.boardState;
+    }
     
-    public TicTacToe(int length){
-        board = new String[length][length];
-        initializeSquares();
+    public TicTacToe(int size){
+        this.squares = new String[size][size];
+        this.currentPlayer = Player.X;
+        this.boardState = BoardState.ACTIVE;
     }
 
-    public String play(int row,int column,String value){
-        String result = "";
-        if(checkAllEmptySquares()){
-            if(value.equalsIgnoreCase("x")){
-                result = "X";
-            }
-        }else{
-            if(!board[row][column].isEmpty()){
-                throw new IllegalArgumentException("not allowed");
-            }
+    public boolean play(int row,int column,Player player){
+        if(!isPlayerXStartingTheGame(player)){
+            checkPlayerPermittedToPlay(player, row, column);
         }
-        checkSquare(row, column, value);
-        return result;
+        assignSquare(row, column, player);
+        updateGameStatus(row, column, player);
+        return true;
     }
 
-    public String[][] getBoard() {
-        return board;
+    private void updateGameStatus(int row, int column, Player player){
+        if(isfWinningPlay(row, column, player)){
+            boardState = BoardState.valueOf("PLAYER_"+player.toString()+"_WON");
+        }else if(isAllSquaresOccupied()){
+            boardState = BoardState.DRAW;
+        }
     }
 
-    private void checkSquare(int row,int column,String value){
-        board[row][column] = value;
-    }
-
-    private boolean checkAllEmptySquares(){
-        for (int row = 0; row < board.length; row++) {
-            for (int col = 0; col < board[row].length; col++) {
-                if(!board[row][col].isEmpty()){
+    private boolean isAllSquaresOccupied(){
+        for (int row = 0; row < squares.length; row++) {
+            for (int col = 0; col < squares[row].length; col++) {
+                if(squares[row][col] == null){
                     return false;
                 }
             }
@@ -42,13 +43,73 @@ public class TicTacToe {
         return true;
     }
 
-    private void initializeSquares(){
-        for (int row = 0; row < board.length; row++) {
-            for (int col = 0; col < board[row].length; col++) {
-                board[row][col] = "";
+    private boolean isPlayerXStartingTheGame(Player player){
+        boolean freshSquares = true;
+        for (int row = 0; row < squares.length; row++) {
+            for (int col = 0; col < squares[row].length; col++) {
+                if(squares[row][col] != null){
+                    freshSquares = false;
+                }
             }
         }
+        if(freshSquares && player != Player.X){
+            throw new IllegalArgumentException("Player X only can start"); 
+        }
+        return freshSquares;
     }
 
-    
+    private boolean checkPlayerPermittedToPlay(Player player,int row,int column){
+        if(currentPlayer == player){
+            throw new IllegalArgumentException("Player cannot play twice");
+        }
+        if(squares[row][column] != null){
+            throw new IllegalArgumentException("Player cannot play on a played Square");
+        }
+        return true;
+    }
+
+    private void assignSquare(int row, int column, Player player){
+        squares[row][column] = player.toString();
+        currentPlayer = player;
+    }
+
+    private boolean isfWinningPlay(int row, int column, Player player){
+        return rowComplete(row,player) || columnComplete(column, player) || backDiagonalComplete(row, column, player) || frontDiagonalComplete(row, column, player);
+    }
+
+    private boolean rowComplete(int row,Player player){
+        for(int i = 0;i< squares.length ; i++){
+            if(!(squares[row][i] != null && squares[row][i].equalsIgnoreCase(player.toString()))){
+                return false;                
+            }
+        }
+        return true;
+    }
+
+    private boolean columnComplete(int column,Player player){
+        for(int i = 0;i< squares.length ; i++){
+            if(!(squares[i][column] != null && squares[i][column].equalsIgnoreCase(player.toString()))){
+                return false;                
+            }
+        }
+        return true;
+    }
+
+    private boolean backDiagonalComplete(int row,int column,Player player){
+        for(int i = 0;i< squares.length ; i++){
+            if(!(squares[i][i] != null && squares[i][i].equalsIgnoreCase(player.toString()))){
+                return false;                
+            }
+        }
+        return true;
+    }
+
+    private boolean frontDiagonalComplete(int row,int column,Player player){
+        for(int i = 0; i < squares.length ; i++){
+            if(!(squares[i][squares.length-(1+i)] != null && squares[i][squares.length-(1+i)].equalsIgnoreCase(player.toString()))){
+                return false;                
+            }
+        }
+        return true;
+    }    
 }
