@@ -40,10 +40,10 @@ public class TestTicTacToe {
     @Test
     void should_not_play_if_player_played_twice() {
         //GIVEN
-        ticTacToe.play(RANDOM_SQUARE_INDEX[0], RANDOM_SQUARE_INDEX[1],RANDOM_PLAYER);
+        ticTacToe.play(RANDOM_SQUARE_INDEX[0], RANDOM_SQUARE_INDEX[1],Player.X);
         
         assertThrows(IllegalArgumentException.class, ()->{
-            ticTacToe.play(RANDOM_SQUARE_INDEX[0], RANDOM_SQUARE_INDEX[1],RANDOM_PLAYER);
+            ticTacToe.play(RANDOM_SQUARE_INDEX[0], RANDOM_SQUARE_INDEX[1],Player.X);
         });
     }
     
@@ -68,7 +68,6 @@ public class TestTicTacToe {
         ticTacToe.play(0,1,Player.X);
         ticTacToe.play(1,1,Player.O);
         ticTacToe.play(0,2,Player.X);
-        
         
         BoardState expected = BoardState.valueOf("PLAYER_" + RANDOM_PLAYER.toString() + "_WON");
         assertEquals(expected, ticTacToe.getBoardStatus());
