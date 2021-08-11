@@ -4,6 +4,7 @@ public class Board {
     private String[][] squares;
     private Player currentPlayer;
     private BoardState boardState;
+    private int moves = 0;
     
     public Board(int size) {
         this.squares = new String[size][size];
@@ -11,56 +12,85 @@ public class Board {
         this.boardState = BoardState.ACTIVE;
     }
 
-    public boolean isActive() {
+    public boolean acceptingPlays() {
         return boardState == BoardState.ACTIVE;
     }
 
-    public void updateState(BoardState boardState) {
-        this.boardState = boardState;
+    public boolean isFull(){
+        return this.moves == 9;
     }
 
-    public String setSquare(Coordinates coords, Player player){
-        if(isEmpty() && player != Player.X)
-            throw new GameAlreadyStartedException();
-        if(currentPlayer == player)
-            throw new PlayTwiceException();
-        if(squareHasValue(coords))
-            throw new AlreadyPlayedException();
+    public boolean isAlternatePlayer(Player player){
+        return currentPlayer != player;
+    }
+
+    public boolean isWinningPlayer(Player player){
+        return boardState == BoardState.valueOf("PLAYER_"+player.toString()+"_WON");
+    }
+
+    public boolean isPlayerX(Player player){
+        return player == Player.X;
+    }
+
+    public boolean isEmpty(){
+        return moves == 0;
+    }
+
+    public boolean squareAlreadyPlayed(Coordinates coords){
+        return squares[coords.getRow()][coords.getColumn()] != null;
+    }
+
+    public void playOnSquare(Coordinates coords,Player player){
         squares[coords.getRow()][coords.getColumn()] = player.toString();
-        return player.toString();
+        currentPlayer = player;
+        moves ++;
     }
 
-    // public String getSquareValue(Coordinates coords){
-    //     return squares[coords.getRow()][coords.getColumn()];
-    // }
-
-    private void makePlayerWin(Player player){
-        this.boardState = BoardState.valueOf("PLAYER_"+player.toString()+"_WON");
-    }
-
-    private void makeDraw(){
+    public void endAsDraw(){
         this.boardState =BoardState.DRAW;
     }
 
-    private boolean isFullyOccupied(){
-        for (int row = 0; row < squares.length; row++) {
-            for (int col = 0; col < squares[row].length; col++) {
-                if(squares[row][col] == null){
-                    return false;
-                }
+    public void endAsWinner(Player player){
+        this.boardState = BoardState.valueOf("PLAYER_"+player.toString()+"_WON");
+    }
+
+    public boolean playerGotThreeInARow(Coordinates coords, Player player){
+        return rowComplete(coords.getRow(),player) || columnComplete(coords.getColumn() , player) || backDiagonalComplete(coords.getRow() , coords.getColumn() , player) || frontDiagonalComplete(coords.getRow() , coords.getColumn(), player);
+    }
+
+    private boolean rowComplete(int row,Player player){
+        for(int i = 0;i< squares.length ; i++){
+            if(!(squares[row][i] != null && squares[row][i].equalsIgnoreCase(player.toString()))){
+                return false;                
             }
         }
         return true;
     }
 
-    private boolean isEmpty(){
-        return currentPlayer == null;
+    private boolean columnComplete(int column,Player player){
+        for(int i = 0;i< squares.length ; i++){
+            if(!(squares[i][column] != null && squares[i][column].equalsIgnoreCase(player.toString()))){
+                return false;                
+            }
+        }
+        return true;
     }
 
-    private boolean squareHasValue(Coordinates coords){
-        return squares[coords.getRow()][coords.getColumn()] != null;
+    private boolean backDiagonalComplete(int row,int column,Player player){
+        for(int i = 0;i< squares.length ; i++){
+            if(!(squares[i][i] != null && squares[i][i].equalsIgnoreCase(player.toString()))){
+                return false;                
+            }
+        }
+        return true;
     }
 
-    
-    
+    private boolean frontDiagonalComplete(int row,int column,Player player){
+        for(int i = 0; i < squares.length ; i++){
+            if(!(squares[i][squares.length-(1+i)] != null && squares[i][squares.length-(1+i)].equalsIgnoreCase(player.toString()))){
+                return false;                
+            }
+        }
+        return true;
+    }   
 }
